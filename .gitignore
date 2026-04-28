@@ -1,32 +1,4 @@
-# Dependências (NÃO REMOVER: O comando 'npm install' as recria)
 node_modules/
-.pnp
-.pnp.js
-
-# Cypress: Arquivos gerados em cada execução (Pesados e desnecessários no Git)
-cypress/screenshots/
 cypress/videos/
-cypress/downloads/
-
-# Relatórios de Teste (Cucumber / Mochawesome)
-# Ignora os resultados das execuções, mas NÃO o package.json
-cypress/reports/
-cypress/results/
-
-# Segurança: Arquivos com senhas e tokens
+cypress/screenshots/
 cypress.env.json
-.env
-
-# Logs de erro e debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-cypress.log
-
-# IDEs e Sistema Operacional
-.vscode/
-.idea/
-.DS_Store
-Thumbs.db
-dist/
-build/

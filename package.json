@@ -4,7 +4,9 @@
   "main": "index.js",
   "scripts": {
     "test": "cypress run --browser chrome",
-    "test:open": "cypress open"
+    "test:open": "cypress open",
+    "test:smoke": "cypress run --browser chrome --env tags=@smoke",
+    "test:regression": "cypress run --browser chrome --env tags=@regression"
   },
   "keywords": [],
   "author": "",

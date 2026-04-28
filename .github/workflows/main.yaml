@@ -2,21 +2,73 @@ name: Cypress CI
 
 on:
   push:
-    branches: [ main, master ]
+    branches:
+      - main
+      - dev
+      - "feature/**"
+      - "fix/**"
   pull_request:
-    branches: [ main, master ]
+    branches:
+      - main
+      - dev
+  repository_dispatch:
+    types: [run-tests]
 
 jobs:
-  cypress-run:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
 
-      - name: Install and Run Tests
+  smoke:
+    name: Smoke Tests
+    runs-on: ubuntu-latest
+    if: |
+      github.ref == 'refs/heads/main' ||
+      github.ref == 'refs/heads/dev' ||
+      startsWith(github.ref, 'refs/heads/feature/') ||
+      startsWith(github.ref, 'refs/heads/fix/') ||
+      github.event_name == 'pull_request' ||
+      github.event_name == 'repository_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Smoke Tests
         uses: cypress-io/github-action@v6
         with:
-  
           install-command: npm ci
+          command: npm run test:smoke
+        env:
+          CYPRESS_USUARIO_PADRAO: ${{ secrets.CYPRESS_USUARIO_PADRAO }}
+          CYPRESS_USUARIO_BLOQUEADO: ${{ secrets.CYPRESS_USUARIO_BLOQUEADO }}
+          CYPRESS_SENHA: ${{ secrets.CYPRESS_SENHA }}
 
-          command: npm test
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: smoke-screenshots
+          path: cypress/screenshots
+
+  regression:
+    name: Regression Tests
+    runs-on: ubuntu-latest
+    needs: smoke
+    if: |
+      github.ref == 'refs/heads/main' ||
+      github.ref == 'refs/heads/dev' ||
+      github.event_name == 'pull_request' ||
+      github.event_name == 'repository_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Regression Tests
+        uses: cypress-io/github-action@v6
+        with:
+          install-command: npm ci
+          command: npm run test:regression
+        env:
+          CYPRESS_USUARIO_PADRAO: ${{ secrets.CYPRESS_USUARIO_PADRAO }}
+          CYPRESS_USUARIO_BLOQUEADO: ${{ secrets.CYPRESS_USUARIO_BLOQUEADO }}
+          CYPRESS_SENHA: ${{ secrets.CYPRESS_SENHA }}
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: regression-screenshots
+          path: cypress/screenshots
