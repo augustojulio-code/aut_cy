@@ -3,14 +3,14 @@ name: Cypress CI
 on:
   push:
     branches:
-      - main
-      - dev
+      - master
+      - develop
       - "feature/**"
       - "fix/**"
   pull_request:
     branches:
-      - main
-      - dev
+      - master
+      - develop
   repository_dispatch:
     types: [run-tests]
 
@@ -20,8 +20,8 @@ jobs:
     name: Smoke Tests
     runs-on: ubuntu-latest
     if: |
-      github.ref == 'refs/heads/main' ||
-      github.ref == 'refs/heads/dev' ||
+      github.ref == 'refs/heads/master' ||
+      github.ref == 'refs/heads/develop' ||
       startsWith(github.ref, 'refs/heads/feature/') ||
       startsWith(github.ref, 'refs/heads/fix/') ||
       github.event_name == 'pull_request' ||
@@ -50,8 +50,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: smoke
     if: |
-      github.ref == 'refs/heads/main' ||
-      github.ref == 'refs/heads/dev' ||
+      github.ref == 'refs/heads/master' ||
+      github.ref == 'refs/heads/develop' ||
       github.event_name == 'pull_request' ||
       github.event_name == 'repository_dispatch'
     steps:
