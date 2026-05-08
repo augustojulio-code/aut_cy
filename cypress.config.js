@@ -11,6 +11,8 @@ module.exports = defineConfig({
         "file:preprocessor",
         createBundler({ plugins: [createEsbuildPlugin(config)] })
       );
+      const { allureCypress } = require('allure-cypress/reporter');
+      allureCypress(on, config);
       return config;
     },
     baseUrl: "https://www.saucedemo.com",

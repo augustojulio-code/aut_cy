@@ -3,14 +3,14 @@ name: Cypress CI
 on:
   push:
     branches:
-      - main
-      - dev
+      - master
+      - develop
       - "feature/**"
       - "fix/**"
   pull_request:
     branches:
-      - main
-      - dev
+      - master
+      - develop
   repository_dispatch:
     types: [run-tests]
 
@@ -20,8 +20,8 @@ jobs:
     name: Smoke Tests
     runs-on: ubuntu-latest
     if: |
-      github.ref == 'refs/heads/main' ||
-      github.ref == 'refs/heads/dev' ||
+      github.ref == 'refs/heads/master' ||
+      github.ref == 'refs/heads/develop' ||
       startsWith(github.ref, 'refs/heads/feature/') ||
       startsWith(github.ref, 'refs/heads/fix/') ||
       github.event_name == 'pull_request' ||
@@ -39,19 +39,23 @@ jobs:
           CYPRESS_USUARIO_BLOQUEADO: ${{ secrets.CYPRESS_USUARIO_BLOQUEADO }}
           CYPRESS_SENHA: ${{ secrets.CYPRESS_SENHA }}
 
+      - name: Generate Allure Report
+        if: always()
+        run: npx allure generate allure-results --clean -o allure-report
+
       - uses: actions/upload-artifact@v4
-        if: failure()
+        if: always()
         with:
-          name: smoke-screenshots
-          path: cypress/screenshots
+          name: smoke-allure-report
+          path: allure-report
 
   regression:
     name: Regression Tests
     runs-on: ubuntu-latest
     needs: smoke
     if: |
-      github.ref == 'refs/heads/main' ||
-      github.ref == 'refs/heads/dev' ||
+      github.ref == 'refs/heads/master' ||
+      github.ref == 'refs/heads/develop' ||
       github.event_name == 'pull_request' ||
       github.event_name == 'repository_dispatch'
     steps:
@@ -61,14 +65,18 @@ jobs:
         uses: cypress-io/github-action@v6
         with:
           install-command: npm ci
-          command: npm run test:regression
+          command: npm run test
         env:
           CYPRESS_USUARIO_PADRAO: ${{ secrets.CYPRESS_USUARIO_PADRAO }}
           CYPRESS_USUARIO_BLOQUEADO: ${{ secrets.CYPRESS_USUARIO_BLOQUEADO }}
           CYPRESS_SENHA: ${{ secrets.CYPRESS_SENHA }}
 
+      - name: Generate Allure Report
+        if: always()
+        run: npx allure generate allure-results --clean -o allure-report
+
       - uses: actions/upload-artifact@v4
-        if: failure()
+        if: always()
         with:
-          name: regression-screenshots
-          path: cypress/screenshots
+          name: regression-allure-report
+          path: allure-report
