@@ -1,4 +1,5 @@
 import 'allure-cypress';
+import './commands';
 
 afterEach(() => {
   cy.clearAllCookies();

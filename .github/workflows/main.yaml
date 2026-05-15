@@ -12,7 +12,7 @@ on:
       - master
       - develop
   repository_dispatch:
-    types: [run-tests]
+    types: [run-smoke, run-regression, run-zephyr]
 
 jobs:
 
@@ -20,12 +20,10 @@ jobs:
     name: Smoke Tests
     runs-on: ubuntu-latest
     if: |
-      github.ref == 'refs/heads/master' ||
-      github.ref == 'refs/heads/develop' ||
       startsWith(github.ref, 'refs/heads/feature/') ||
       startsWith(github.ref, 'refs/heads/fix/') ||
       github.event_name == 'pull_request' ||
-      github.event_name == 'repository_dispatch'
+      github.event.action == 'run-smoke'
     steps:
       - uses: actions/checkout@v4
 
@@ -39,29 +37,25 @@ jobs:
           CYPRESS_USUARIO_BLOQUEADO: ${{ secrets.CYPRESS_USUARIO_BLOQUEADO }}
           CYPRESS_SENHA: ${{ secrets.CYPRESS_SENHA }}
 
-      - name: Generate Allure Report
-        if: always()
-        run: npx allure generate allure-results --clean -o allure-report
-
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: smoke-allure-report
-          path: allure-report
 
   regression:
     name: Regression Tests
     runs-on: ubuntu-latest
-    needs: smoke
+    # Paralelismo por grupo de features - descomentar quando houver mais features organizadas em pastas
+    # strategy:
+    #   fail-fast: false
+    #   matrix:
+    #     group: [auth, checkout, product, cart]
     if: |
       github.ref == 'refs/heads/master' ||
       github.ref == 'refs/heads/develop' ||
-      github.event_name == 'pull_request' ||
-      github.event_name == 'repository_dispatch'
+      github.event.action == 'run-regression' ||
+      github.event.action == 'run-zephyr'
     steps:
       - uses: actions/checkout@v4
 
       - name: Run Regression Tests
+        # Com paralelismo: Run Regression Tests - ${{ matrix.group }}
         uses: cypress-io/github-action@v6
         with:
           install-command: npm ci
@@ -70,13 +64,46 @@ jobs:
           CYPRESS_USUARIO_PADRAO: ${{ secrets.CYPRESS_USUARIO_PADRAO }}
           CYPRESS_USUARIO_BLOQUEADO: ${{ secrets.CYPRESS_USUARIO_BLOQUEADO }}
           CYPRESS_SENHA: ${{ secrets.CYPRESS_SENHA }}
+          # Com paralelismo: CYPRESS_GROUP: ${{ matrix.group }}
 
       - name: Generate Allure Report
         if: always()
         run: npx allure generate allure-results --clean -o allure-report
+
+      # Envia métricas ao InfluxDB v2
+      # - name: Send metrics to InfluxDB
+      #   if: always() && github.event.action != 'run-zephyr'
+      #   run: |
+      #     curl -s -o /dev/null -w "%{http_code}" \
+      #       "${INFLUXDB_URL}/api/v2/write?org=${INFLUXDB_ORG}&bucket=${INFLUXDB_BUCKET}&precision=s" \
+      #       --header "Authorization: Token ${INFLUXDB_TOKEN}" \
+      #       --header "Content-Type: text/plain" \
+      #       --data-binary @allure-report/export/influxDbData.txt
+      #   env:
+      #     INFLUXDB_URL: ${{ secrets.INFLUXDB_URL }}
+      #     INFLUXDB_TOKEN: ${{ secrets.INFLUXDB_TOKEN }}
+      #     INFLUXDB_ORG: ${{ secrets.INFLUXDB_ORG }}
+      #     INFLUXDB_BUCKET: ${{ secrets.INFLUXDB_BUCKET }}
 
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: regression-allure-report
           path: allure-report
+
+      # Envia resultados de volta ao Zephyr Scale (apenas quando disparado pelo Zephyr)
+      # - name: Send results to Zephyr Scale
+      #   if: always() && github.event.action == 'run-zephyr'
+      #   run: |
+      #     curl -s -X POST \
+      #       "https://api.zephyrscale.smartbear.com/v2/automations/executions/junit" \
+      #       --header "Authorization: Bearer ${ZEPHYR_TOKEN}" \
+      #       --header "Content-Type: multipart/form-data" \
+      #       --form "file=@allure-results" \
+      #       --form "projectKey=${ZEPHYR_PROJECT_KEY}" \
+      #       --form "testCycleKey=${ZEPHYR_CYCLE_KEY}"
+      #   env:
+      #     ZEPHYR_TOKEN: ${{ secrets.ZEPHYR_TOKEN }}
+      #     ZEPHYR_PROJECT_KEY: ${{ secrets.ZEPHYR_PROJECT_KEY }}
+      #     # ZEPHYR_CYCLE_KEY pode vir do payload do repository_dispatch:
+      #     ZEPHYR_CYCLE_KEY: ${{ github.event.client_payload.zephyr_cycle_id }}
