@@ -2,7 +2,6 @@ import 'allure-cypress';
 import './commands';
 
 afterEach(() => {
-  cy.clearAllCookies();
-  cy.clearAllLocalStorage();
-  cy.clearAllSessionStorage();
+   cy.clearAllCookies();
+  //cy.clearAllLocalStorage();
 });

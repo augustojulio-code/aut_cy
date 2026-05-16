@@ -13,9 +13,9 @@ module.exports = defineConfig({
       );
       const { allureCypress } = require('allure-cypress/reporter');
       allureCypress(on, config);
+      config.baseUrl = config.env.BASE_URL;
       return config;
     },
-    baseUrl: "https://www.saucedemo.com",
     testIsolation: false,
     chromeWebSecurity: false,
     specPattern: "cypress/e2e/**/*.feature",

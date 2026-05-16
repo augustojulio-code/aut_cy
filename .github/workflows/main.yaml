@@ -33,6 +33,7 @@ jobs:
           install-command: npm ci
           command: npm run test:smoke
         env:
+          CYPRESS_BASE_URL: ${{ secrets.CYPRESS_BASE_URL }}
           CYPRESS_USUARIO_PADRAO: ${{ secrets.CYPRESS_USUARIO_PADRAO }}
           CYPRESS_USUARIO_BLOQUEADO: ${{ secrets.CYPRESS_USUARIO_BLOQUEADO }}
           CYPRESS_SENHA: ${{ secrets.CYPRESS_SENHA }}
@@ -61,6 +62,7 @@ jobs:
           install-command: npm ci
           command: npm run test
         env:
+          CYPRESS_BASE_URL: ${{ secrets.CYPRESS_BASE_URL }}
           CYPRESS_USUARIO_PADRAO: ${{ secrets.CYPRESS_USUARIO_PADRAO }}
           CYPRESS_USUARIO_BLOQUEADO: ${{ secrets.CYPRESS_USUARIO_BLOQUEADO }}
           CYPRESS_SENHA: ${{ secrets.CYPRESS_SENHA }}
