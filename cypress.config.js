@@ -19,5 +19,9 @@ module.exports = defineConfig({
     testIsolation: false,
     chromeWebSecurity: false,
     specPattern: "cypress/e2e/**/*.feature",
+    // Paralelismo - descomentar quando houver features organizadas em pastas por grupo
+    // specPattern: process.env.CYPRESS_GROUP
+    //   ? `cypress/e2e/features/${process.env.CYPRESS_GROUP}/**/*.feature`
+    //   : "cypress/e2e/**/*.feature",
   },
 });
