@@ -12,6 +12,24 @@ export default class BasePage {
         .type(value);
     }
 
+    fillSelect(element, value){
+        element()
+        .should('be.visible')
+        .select(value);
+    }
+
+    fillForm(fields) {
+        Object.entries(fields).forEach(([element, value]) => {
+            this.fillInput(this.elements[element], value);
+        });
+    }
+
+    fillSelects(fields) {
+        Object.entries(fields).forEach(([element, value]) => {
+            this.fillSelect(this.elements[element], value);
+        });
+    }
+
     clickElement(element){
         element()
         .should('be.visible')
