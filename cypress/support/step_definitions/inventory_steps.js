@@ -1,5 +1,5 @@
 import { Given, When, Then } from '@badeball/cypress-cucumber-preprocessor';
-import { inventoryPage } from '../page_objects/Inventory_page';
+import { inventoryPage } from '../page_objects/Inventories_page';
 
 Given('que estou na página de inventário', () => {
   cy.url().should("include", "/inventory.html");
